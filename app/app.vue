@@ -1,6 +1,7 @@
 
 <template>
     <NuxtPage />
-    <InputField field_name="email" id="nome"/>
-    <InputField field_name="Nome" id="nome"/>
+    <InputField field_name="Email"/>
+    <InputField field_name="Nome"/>
+    <InputField field_name="Senha" tipo="password"/>
 </template>
