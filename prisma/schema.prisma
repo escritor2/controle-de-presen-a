@@ -1,0 +1,144 @@
+enum Role{
+  ADMIN
+  EMPRESA 
+  PROFESSOR
+
+}
+
+enum Subturma{
+  A
+  B
+  GERAL
+
+}
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../app/generated/prisma"
+}
+
+datasource db {
+  provider = "sqlite"
+}
+
+model User{
+  id String @id @default(uuid())
+  email String @unique
+  senha String 
+  role Role @default(PROFESSOR)
+  createdAt DateTime @default(now())
+
+  empresaId String?
+  empresa Empresa? @relation(fields: [empresaId], references: [id])
+  professor Professor? 
+
+}
+
+
+model Empresa{
+  id String @id @default(uuid())
+  nome String
+  cnpj String? @unique
+  usuarios User[]
+  alunos Aluno[]
+
+}
+
+
+model Aluno{
+  id String @id @default(uuid())
+  nome String 
+  matricula String @unique
+
+
+
+  empresaId String?
+  empresa Empresa? @relation(fields: [empresaId], references: [id])
+
+  turmas AlunoNaTurma[]
+  frequencias Frequencia[]
+
+}
+
+model AlunoNaTurma{
+  alunoId String
+  turmaId String
+  subturma Subturma @default(GERAL)
+
+  aluno Aluno @relation(fields: [alunoId], references: [id])
+  turma Turma @relation(fields: [turmaId], references: [id])
+
+  @@id([alunoId, turmaId])
+
+}
+
+
+model Professor{
+  id String @id @default(uuid())
+  nome String
+  userId String @unique
+  user User @relation(fields: [userId], references: [id])
+  
+  disciplinas Disciplina[]  
+}
+
+model Curso{
+  id String @id @default(uuid())
+  nome String 
+  turmas Turma[]
+
+
+}
+
+model Turma{
+  id String @id @default(uuid())
+  nome String
+  termo Int 
+  codigo String @unique 
+  periodo String // "Manhã", "Tarde", "Noite"
+
+  cursoId String 
+  curso Curso @relation(fields: [cursoId], references: [id])
+
+  alunos AlunoNaTurma[]
+  disciplinas Disciplina[]
+  frequencias Frequencia[]
+}
+
+
+model Disciplina{
+  id String @id @default(uuid())
+  nome String 
+
+  turmaId String 
+  turma Turma @relation(fields:[turmaId], references: [id])
+
+  professorId String
+  professor Professor @relation(fields: [professorId], references: [id])
+
+  frequencias Frequencia[]
+
+}
+
+model Frequencia{
+  id String @id @default(uuid())
+  data DateTime @default(now())
+  presente Boolean
+  observacao String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  alunoId String
+  aluno Aluno @relation(fields: [alunoId], references: [id])
+
+  disciplinaId String 
+  disciplina Disciplina @relation(fields: [disciplinaId],  references: [id])
+
+  turmaId String
+  turma Turma @relation(fields: [turmaId], references: [id])
+
+  @@unique([alunoId, disciplinaId, data])
+
+}
+
