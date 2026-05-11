@@ -19,7 +19,7 @@ async function main(){
     const admin = await prisma.user.create({
         data: {
             email: 'admin@admin.com',
-            senha: '$2b$10$EpjXNoS27srLndAgtY2.reOn.Kx.uCqT.KAtE5q8sS2L.Z0s.A4O.',
+            senha: '$2b$10$RCfLKnOY31xFEi4gEvPKwekYfjW6/.mWYc9cvnndgQsPzDCbCD2o2',
             role: 'ADMIN'
         }
     })
@@ -41,7 +41,7 @@ async function main(){
     const userProf = await prisma.user.create({
         data: {
             email: 'mc.gorilla@escolar.com',
-            senha: '$2a$12$a6Wa8nxFjQDtfErf/ndijuxoFLNq7VfPlNSyJLD6oQ23KI3DjpXNW',
+            senha: '$2b$10$2vos8X.qfHsgyI5yPDxbze/PDoDqGGrdKEuRcatN.SdexQeAgZs6C',
             role: 'PROFESSOR'
         }
     })
