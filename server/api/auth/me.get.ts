@@ -3,7 +3,7 @@ export default defineEventHandler(async (event) =>{
 
     if(!token) return {user : null}
 
-    const { id } = JSON.parse(token)
+    const id = token
 
     const user = await prisma.user.findUnique({
         where: {id},

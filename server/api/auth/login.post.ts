@@ -1,28 +1,28 @@
-import bcrypt from 'bcrypt'
-
-export default defineEventHandler(async (event) =>{
-    const {email, senha} = await readBody(event)
+export default defineEventHandler(async (event) => {
+    const body = await readBody(event)
+    const { email, senha } = body
 
     const user = await prisma.user.findUnique({
-        where: {email}
+        where: { email }
     })
- 
-    if(!user || !(await bcrypt.compare(senha, user.senha))){
+
+    if (!user || !(await comparePassword(senha, user.senha))) {
         throw createError({
             statusCode: 401,
-            statusMessage: "Credenciais invalidas"
-
+            statusMessage: "E-mail ou senha incorretos."
         })
     }
 
-    setCookie(event, 'auth_token', JSON.stringify({id:user.id, role: user.role}), {
-        httpOnly: true,
+    setCookie(event, 'auth_token', user.id, {
+        httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
-        maxAge: 60 * 60 * 24 * 7,
+        sameSite: 'lax',
+        maxAge: 60 * 60 * 24 * 7, // 1 semana
         path: '/'
     })
 
-    return {message: 'sucesso', role: user.role}
-
-
+    return {
+        id: user.id,
+        role: user.role
+    }
 })
