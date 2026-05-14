@@ -1,15 +1,18 @@
-export default defineEventHandler(async (event) =>{
+export default defineEventHandler(async (event) => {
     const token = getCookie(event, 'auth_token')
 
-    if(!token) return {user : null}
-
-    const id = token
+    if (!token) {
+        throw createError({ statusCode: 401, statusMessage: 'Não autenticado' })
+    }
 
     const user = await prisma.user.findUnique({
-        where: {id},
-        select: {id: true, email: true, role: true}
+        where: { id: token },
+        select: { id: true, email: true, role: true }
     })
 
-    return { user }
+    if (!user) {
+        throw createError({ statusCode: 401, statusMessage: 'Usuário não encontrado' })
+    }
 
+    return user
 })

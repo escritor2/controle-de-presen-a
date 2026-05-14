@@ -99,6 +99,8 @@ model Turma{
   cursoId String 
   curso Curso @relation(fields: [cursoId], references: [id])
 
+  spreadsheetId String?
+
   alunos AlunoNaTurma[]
   disciplinas Disciplina[]
   frequencias Frequencia[]

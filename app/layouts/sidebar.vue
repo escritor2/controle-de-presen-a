@@ -25,7 +25,7 @@
         <UAvatar :alt="user?.email" size="sm" />
         <div class="min-w-0 flex-1">
           <p class="text-xs font-semibold truncate">{{ user?.email }}</p>
-          <UBadge :color="user?.role === 'ADMIN' ? 'red' : 'green'" variant="flat" size="xs">
+          <UBadge :color="user?.role === 'ADMIN' ? 'error' : 'success'" variant="soft" size="xs">
             {{ user?.role }}
           </UBadge>
         </div>
@@ -39,7 +39,7 @@
   </main>
 </template>
 
-<script setup>
+<script setup lang="ts">
 const { links } = useNavigation()
-const { data: user } = useAuth()
+const { user } = useAuth()
 </script>

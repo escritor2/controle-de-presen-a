@@ -1,4 +1,4 @@
-<script setup>
+<script setup lang="ts">
 const estado = ref({
     email: '',
     senha: ''
@@ -7,19 +7,30 @@ const estado = ref({
 const erroMsg = ref('')
 const carregando = ref(false)
 
+const { login: authLogin } = useAuth()
+
 async function login() {
     carregando.value = true
     erroMsg.value = ''
     try {
-        await $fetch('/api/auth/login', {
+        const response = await $fetch('/api/auth/login', {
             method: 'POST',
             body: {
                 email: estado.value.email,
                 senha: estado.value.senha
             }
         })
-        await navigateTo('/sixseven')
-    } catch (err) {
+        
+        // Atualiza o estado do usuário (o useAuth poderia fazer isso, mas vamos garantir o redirecionamento aqui)
+        const { user } = useAuth()
+        user.value = response
+
+        if (response.role === 'ADMIN') {
+            await navigateTo('/admin')
+        } else {
+            await navigateTo('/dashboard')
+        }
+    } catch (err: any) {
         erroMsg.value = err.data?.statusMessage || 'Erro ao entrar. Verifique suas credenciais.'
     } finally {
         carregando.value = false

@@ -1,6 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import "dotenv/config"
 import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3"
+import { hashPassword } from "../server/utils/hash"
 
 const adapter = new PrismaBetterSqlite3({url:process.env.DATABASE_URL!})
 const prisma = new PrismaClient({adapter})
@@ -16,10 +17,11 @@ async function main(){
     await prisma.professor.deleteMany()
     await prisma.user.deleteMany()
 
+    const adminPassword = await hashPassword('admin123')
     const admin = await prisma.user.create({
         data: {
             email: 'admin@admin.com',
-            senha: '$2b$10$RCfLKnOY31xFEi4gEvPKwekYfjW6/.mWYc9cvnndgQsPzDCbCD2o2',
+            senha: adminPassword,
             role: 'ADMIN'
         }
     })

@@ -1,8 +1,14 @@
-export const useAuth = () =>{
-    const user = useState('user', () => null);
-    const login = async (credentials: {email : string, senha: string}) => {
+interface User {
+    id: string
+    email: string
+    role: 'ADMIN' | 'PROFESSOR' | 'EMPRESA'
+}
+
+export const useAuth = () => {
+    const user = useState<User | null>('user', () => null);
+    const login = async (credentials: { email: string, senha: string }) => {
         try {
-            const data = await $fetch('/api/auth/login', {
+            const data = await $fetch<User>('/api/auth/login', {
                 method: 'POST',
                 body: credentials
             })
