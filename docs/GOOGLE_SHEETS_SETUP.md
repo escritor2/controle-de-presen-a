@@ -2,23 +2,23 @@
 
 Este guia explica como configurar o "Proxy" no Google Apps Script para permitir que o sistema Nuxt atualize suas planilhas em tempo real.
 
-##  Passo a Passo
+## Passo a Passo
 
 ### 1. Preparar a Planilha
-*   Crie uma nova planilha no Google Sheets.
-*   Na primeira linha (Cabeçalho), coloque: `Matricula` na célula A1, `Nome` na B1, e as datas (ex: `15/05`) nas colunas seguintes.
+* Crie uma nova planilha no Google Sheets.
+* Na primeira linha (Cabeçalho), coloque: `Matricula` na célula A1, `Nome` na B1, e as datas (ex: `15/05`) nas colunas seguintes.
 
 ### 2. Configurar a Senha de Sincronização (Segurança)
 Para que sua senha não fique exposta no código:
-*   No editor do Apps Script, clique no ícone da engrenagem **Configurações do Projeto** (Project Settings) no menu lateral esquerdo.
-*   Role até o final e clique em **Adicionar propriedade do script**.
-*   Em **Propriedade**, digite: `SYNC_TOKEN`
-*   Em **Valor**, digite sua senha secreta (a mesma que definiu no sistema Nuxt).
-*   Clique em **Salvar propriedades do script**.
+* No editor do Apps Script, clique no ícone da engrenagem **Configurações do Projeto** (Project Settings) no menu lateral esquerdo.
+* Role até o final e clique em **Adicionar propriedade do script**.
+* Em **Propriedade**, digite: `SYNC_TOKEN`
+* Em **Valor**, digite sua senha secreta (a mesma que definiu no sistema Nuxt).
+* Clique em **Salvar propriedades do script**.
 
 ### 3. Colar o Código do Proxy
-*   Volte para o **Editor** (ícone `< >`).
-*   Apague todo o código existente e cole o código abaixo:
+* Volte para o **Editor** (ícone `< >`).
+* Apague todo o código existente e cole o código abaixo:
 
 ```javascript
 // O script busca a senha nas configurações internas (Propriedades do Script)
@@ -50,7 +50,7 @@ function doPost(e) {
       return response({ result: "success", message: "Inicializado" });
     }
 
-    var values = sheet.getDataRange().getValues();
+    var values = sheet.getDataRange().getDisplayValues();
     var header = values[0];
     var colIndex = -1;
     for (var j = 0; j < header.length; j++) {
@@ -87,17 +87,17 @@ function response(obj) {
 ```
 
 ### 3. Publicar o Script
-*   Clique em **Implantar > Nova Implantação**.
-*   Tipo: **App da Web**.
-*   Executar como: **Você**.
-*   Quem pode acessar: **Qualquer pessoa**.
-*   Copie a **URL do App da Web** gerada.
+* Clique em **Implantar > Nova Implantação**.
+* Tipo: **App da Web**.
+* Executar como: **Você**.
+* Quem pode acessar: **Qualquer pessoa**.
+* Copie a **URL do App da Web** gerada.
 
 ### 4. Vincular ao Sistema
-*   No sistema de Presença, vá em **Gerenciar Turmas**.
-*   Cole o **ID da Planilha** (o código longo da URL da planilha).
-*   Clique em **Salvar**.
-*   Agora, use o botão **"Exportar Alunos para Google"** para testar a conexão.
+* No sistema de Presença, vá em **Gerenciar Turmas**.
+* Cole o **ID da Planilha** (o código longo da URL da planilha).
+* Clique em **Salvar**.
+* Agora, use o botão **"Exportar Alunos para Google"** para testar a conexão.
 
 ## Segurança
 O `SECURITY_TOKEN` no script deve ser exatamente igual ao `SYNC_TOKEN` definido no arquivo `.env` (ou `nuxt.config.ts`) do seu projeto Nuxt. Isso impede que pessoas externas usem seu proxy.
