@@ -45,6 +45,11 @@ export default defineEventHandler(async (event) => {
 
         // Organizar as datas únicas para as colunas
         const datasSet = new Set<string>()
+        
+        // Sempre garante que a data de hoje apareça como coluna
+        const hojeStr = new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
+        datasSet.add(hojeStr)
+
         frequencias.forEach(f => {
             const dataStr = f.data.toLocaleDateString('pt-BR', { day: '2-digit', month: '2-digit' })
             datasSet.add(dataStr)

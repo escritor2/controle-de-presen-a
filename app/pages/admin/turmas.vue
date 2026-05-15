@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 definePageMeta({
     middleware: ['auth', 'admin'],
     layout: 'sidebar'
@@ -98,6 +99,30 @@ async function criarTurma() {
     }
 }
 
+async function inicializarPlanilha() {
+    if (!turmaSelecionada.value || !turmaSelecionada.value.spreadsheetId) {
+        toast.add({ title: 'Atenção', description: 'Vincule uma planilha primeiro', color: 'warning' })
+        return
+    }
+
+    if (!confirm('Isso irá apagar o conteúdo atual da planilha e criar a lista de alunos do sistema. Continuar?')) return
+
+    carregando.value = true
+    try {
+        const res: any = await $fetch(`/api/turmas/${turmaSelecionada.value.id}/init-sheet`, { method: 'POST' })
+        
+        if (res.result === 'error') {
+            toast.add({ title: 'Erro no Google', description: res.message || 'Erro desconhecido', color: 'error' })
+        } else {
+            toast.add({ title: 'Sucesso', description: 'Planilha inicializada com os alunos!', color: 'success' })
+        }
+    } catch (err: any) {
+        toast.add({ title: 'Erro', description: err.data?.statusMessage || 'Erro ao inicializar planilha', color: 'error' })
+    } finally {
+        carregando.value = false
+    }
+}
+
 function baixarModelo() {
     const hoje = new Date()
     let colunas = ['Matricula', 'Nome']
@@ -124,6 +149,18 @@ function baixarModelo() {
     link.click()
     document.body.removeChild(link)
 }
+
+watch(() => novaTurma.value.codigo, (newVal) => {
+    if (newVal) {
+        novaTurma.value.codigo = formatCodigoTurma(newVal)
+    }
+})
+
+watch(() => novaTurma.value.termo, (newVal: any) => {
+    if (typeof newVal === 'string') {
+        novaTurma.value.termo = parseInt(newVal.replace(/\D/g, '')) || 1
+    }
+})
 </script>
 
 <template>
@@ -205,9 +242,20 @@ function baixarModelo() {
             </template>
 
             <template #footer>
-                <div class="flex justify-end gap-2">
-                    <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancelar</UButton>
-                    <UButton color="error" :loading="carregando" @click="salvarPlanilha">Salvar Vínculo</UButton>
+                <div class="flex justify-between w-full">
+                    <UButton 
+                        v-if="spreadsheetId" 
+                        label="Exportar Alunos para Google" 
+                        icon="i-heroicons-cloud-arrow-up" 
+                        color="primary" 
+                        variant="soft" 
+                        :loading="carregando"
+                        @click="inicializarPlanilha"
+                    />
+                    <div class="flex gap-2">
+                        <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancelar</UButton>
+                        <UButton color="error" :loading="carregando" @click="salvarPlanilha">Salvar Vínculo</UButton>
+                    </div>
                 </div>
             </template>
         </UModal>
@@ -244,11 +292,11 @@ function baixarModelo() {
             <template #body>
                 <div class="grid grid-cols-2 gap-4">
                     <UFormField label="Nome da Turma" name="nome" class="col-span-2">
-                        <UInput v-model="novaTurma.nome" placeholder="ex: Desenvolvimento de Sistemas A" class="w-full" />
+                        <UInput v-model="novaTurma.nome" placeholder="ex: Desenvolvimento de Sistemas A" class="w-full" maxlength="100" />
                     </UFormField>
 
                     <UFormField label="Código" name="codigo">
-                        <UInput v-model="novaTurma.codigo" placeholder="ex: 101, 202..." class="w-full" />
+                        <UInput v-model="novaTurma.codigo" placeholder="ex: 101, 202..." class="w-full" maxlength="15" />
                     </UFormField>
 
                     <UFormField label="Termo/Semestre" name="termo">

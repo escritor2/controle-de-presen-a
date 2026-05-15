@@ -1,8 +1,8 @@
-# 📝 Sistema de Controle de Presença
+# Sistema de Controle de Presença
 
 Este é um sistema robusto para gestão de frequência escolar, desenvolvido com tecnologias modernas para oferecer uma experiência fluida tanto para administradores quanto para professores e empresas parceiras.
 
-## 🚀 Tecnologias Utilizadas
+## Tecnologias Utilizadas
 
 O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript:
 
@@ -13,11 +13,10 @@ O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript
 - **Autenticação**: Customizada com `bcrypt` e Middleware de segurança
 - **Linguagem**: [TypeScript](https://www.typescriptlang.org/)
 
-## ✨ Funcionalidades Principais
+## Funcionalidades Principais
 
 - **Gestão Multi-Nível (RBAC)**:
   - **ADMIN**: Controle total sobre o sistema (usuários, cursos, turmas).
-  - **EMPRESA**: Visualização de frequência de alunos vinculados à empresa.
   - **PROFESSOR**: Registro e acompanhamento de presença por disciplina.
 - **Estrutura Acadêmica**:
   - Organização por **Cursos**, **Turmas** e **Disciplinas**.
@@ -28,7 +27,33 @@ O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript
 - **Gestão de Alunos**:
   - Vínculo de alunos a múltiplas turmas e empresas.
 
-## 🛠️ Configuração e Instalação
+## 📊 Integração Google Sheets (Sincronização Automática)
+
+O sistema possui uma funcionalidade de sincronização reversa. Sempre que uma presença é marcada no Dashboard, a planilha original do Google Sheets é atualizada automaticamente em tempo real.
+
+### Como Configurar:
+
+1.  **Apps Script Proxy**:
+    *   Abra sua planilha do Google.
+    *   Vá em `Extensões > Apps Script`.
+    *   Cole o código do script de Proxy (disponível no [Guia de Configuração do Google Sheets](docs/GOOGLE_SHEETS_SETUP.md)).
+    *   Clique em `Implantar > Nova Implantação`.
+    *   Selecione `App da Web`, execute como **"Você"** e dê acesso a **"Qualquer pessoa"**.
+    *   Copie a URL gerada e cole no servidor do sistema.
+
+2.  **Permissões de Compartilhamento**:
+    *   Para que o sistema consiga atualizar planilhas de outros professores, o professor deve **compartilhar a planilha** com o e-mail que criou o Apps Script (permissão de Editor).
+
+3.  **Segurança**:
+    *   A comunicação é protegida por um `SYNC_TOKEN` definido no arquivo `.env`.
+    *   Somente requisições com o token correto são processadas pelo Google.
+
+4.  **Inicialização Rápida**:
+    *   No painel administrativo, use o botão **"Exportar Alunos para Google"** para criar automaticamente o cabeçalho e a lista de alunos em uma planilha em branco.
+
+---
+
+## 🛠️ Instalação e Execução
 
 ### Pré-requisitos
 - Node.js (v20 ou superior)
@@ -65,20 +90,9 @@ O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript
    ```
    O sistema estará disponível em `http://localhost:3000`.
 
-## 📁 Estrutura do Projeto
+## Estrutura do Projeto
 
 - `/app`: Interface do usuário (Vue/Nuxt).
 - `/server/api`: Endpoints da API (H3/Nitro).
 - `/server/utils`: Utilitários de backend (Auth, Prisma).
 - `/prisma`: Schema do banco de dados e scripts de seed.
-
-## 🤝 Contribuição
-
-1. Faça um Fork do projeto.
-2. Crie uma Branch para sua Feature (`git checkout -b feature/NovaFeature`).
-3. Faça o Commit de suas alterações (`git commit -m 'Adicionando nova feature'`).
-4. Faça o Push para a Branch (`git push origin feature/NovaFeature`).
-5. Abra um Pull Request.
-
----
-Desenvolvido para facilitar a gestão acadêmica.

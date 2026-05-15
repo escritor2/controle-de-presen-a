@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 definePageMeta({
     middleware: ['auth', 'admin'],
     layout: 'sidebar'
@@ -62,6 +63,10 @@ async function excluirUsuario(id: string) {
 const formatarData = (data: string) => {
     return new Date(data).toLocaleDateString('pt-BR')
 }
+
+watch(() => novoUsuario.value.email, (val) => {
+    novoUsuario.value.email = val.toLowerCase().trim()
+})
 </script>
 
 <template>
@@ -112,11 +117,11 @@ const formatarData = (data: string) => {
             <template #body>
                 <div class="space-y-4">
                     <UFormField label="Nome Completo" name="nome">
-                        <UInput v-model="novoUsuario.nome" placeholder="Nome do Professor" class="w-full" />
+                        <UInput v-model="novoUsuario.nome" placeholder="Nome do Professor" class="w-full" maxlength="100" />
                     </UFormField>
 
                     <UFormField label="E-mail" name="email">
-                        <UInput v-model="novoUsuario.email" type="email" placeholder="email@senai.br" class="w-full" />
+                        <UInput v-model="novoUsuario.email" type="email" placeholder="email@senai.br" class="w-full" maxlength="100" />
                     </UFormField>
 
                     <UFormField label="Senha" name="senha">
@@ -128,6 +133,7 @@ const formatarData = (data: string) => {
                             v-model="novoUsuario.role"
                             :items="[
                                 { label: 'Professor (Comum)', value: 'PROFESSOR' },
+                                { label: 'Empresa Parceira', value: 'EMPRESA' },
                                 { label: 'Administrador', value: 'ADMIN' }
                             ]"
                             class="w-full"

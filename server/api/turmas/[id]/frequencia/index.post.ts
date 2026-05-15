@@ -45,7 +45,7 @@ export default defineEventHandler(async (event) => {
     }
   }
 
-  return await prisma.frequencia.upsert({
+  const registro = await prisma.frequencia.upsert({
     where: {
       alunoId_disciplinaId_data: {
         alunoId,
@@ -62,4 +62,30 @@ export default defineEventHandler(async (event) => {
       presente
     }
   });
+
+  if (turma.spreadsheetId) {
+    const aluno = await prisma.aluno.findUnique({ where: { id: alunoId } });
+    const proxyUrl = 'https://script.google.com/macros/s/AKfycbxFxjEhPynecv0vwdUSsfKa1bnJRKt8V8iZT66AClBKh5N5T0uHQIR9TuD99UwKVReo/exec';
+
+    if (aluno && aluno.matricula) {
+      const dia = dataObj.getDate().toString().padStart(2, '0');
+      const mes = (dataObj.getMonth() + 1).toString().padStart(2, '0');
+      const dataFormatada = `${dia}/${mes}`;
+      // Dispara o sync em background (sem travar a resposta da API)
+      const config = useRuntimeConfig();
+      fetch(proxyUrl, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          token: config.syncToken,
+          spreadsheetId: turma.spreadsheetId,
+          matricula: aluno.matricula,
+          data: dataFormatada,
+          status: presente ? 'P' : 'F'
+        })
+      }).catch(err => console.error('Erro no sync-back Google Sheets:', err));
+    }
+  }
+
+  return registro;
 });

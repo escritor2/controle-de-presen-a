@@ -7,6 +7,9 @@ export const useNavigation = () => {
         if (role === 'ADMIN') {
             return [
                 { label: 'Gerenciar Usuários', icon: 'i-heroicons-users', to: '/admin/usuarios' },
+                { label: 'Gerenciar Cursos', icon: 'i-heroicons-academic-cap', to: '/admin/cursos' },
+                { label: 'Gerenciar Alunos', icon: 'i-heroicons-user-group', to: '/admin/alunos' },
+                { label: 'Gerenciar Empresas', icon: 'i-heroicons-building-office-2', to: '/admin/empresas' },
                 { label: 'Gerenciar Turmas', icon: 'i-heroicons-rectangle-stack', to: '/admin/turmas' }
             ]
         }

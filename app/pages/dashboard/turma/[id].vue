@@ -1,4 +1,5 @@
 <script setup lang="ts">
+
 definePageMeta({
     middleware: ['auth'],
     layout: 'sidebar'
@@ -11,7 +12,7 @@ interface PresencaData {
     data: any[]
 }
 
-const { data: presenca, pending, error, refresh } = await useFetch<PresencaData>(`/api/turma/${route.params.id}/frequencia`)
+const { data: presenca, pending, error, refresh } = await useFetch<PresencaData>(`/api/turmas/${route.params.id}/frequencia`)
 
 const { data: turma } = await useFetch(`/api/turmas/${route.params.id}`)
 
@@ -30,13 +31,39 @@ const handleRefresh = async () => {
 const handleSync = async () => {
     syncLoading.value = true
     try {
-        await $fetch(`/api/turma/${route.params.id}/sync`, { method: 'POST' })
+        await $fetch(`/api/turmas/${route.params.id}/sync`, { method: 'POST' })
         toast.add({ title: 'Sucesso', description: 'Banco de dados sincronizado!', color: 'success' })
         await refresh()
     } catch (err: any) {
         toast.add({ title: 'Erro', description: err.data?.statusMessage || 'Erro ao sincronizar', color: 'error' })
     } finally {
         syncLoading.value = false
+    }
+}
+
+async function togglePresenca(row: any, header: string) {
+    if (header === 'Nome' || header === 'Matricula') return
+
+    const atual = row[header]
+    const novoStatus = atual === 'P' ? 'F' : 'P'
+    
+    // Atualização otimista na UI
+    row[header] = novoStatus
+
+    try {
+        await $fetch(`/api/turmas/${route.params.id}/frequencia`, {
+            method: 'POST',
+            body: {
+                alunoId: row.id, // O servidor envia como row.id
+                data: header,
+                presente: novoStatus === 'P'
+            }
+        })
+        toast.add({ title: 'Atualizado', description: `Presença de ${row.Nome} alterada para ${novoStatus}`, color: 'success', duration: 2000 })
+    } catch (err: any) {
+        // Reverte em caso de erro
+        row[header] = atual
+        toast.add({ title: 'Erro', description: 'Não foi possível salvar a presença', color: 'error' })
     }
 }
 </script>
@@ -78,12 +105,18 @@ const handleSync = async () => {
                     :data="presenca?.data || []"
                 >
                     <template v-for="header in presenca?.headers" :key="header" #[`${header}-cell`]="{ row }">
-                        <span :class="{
-                            'text-green-600 font-bold': row.original[header] === 'P',
-                            'text-red-600 font-bold': row.original[header] === 'F'
-                        }">
-                            {{ row.original[header] }}
-                        </span>
+                        <div 
+                            class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded text-center transition-colors"
+                            @click="togglePresenca(row, header)"
+                        >
+                            <span :class="{
+                                'text-green-600 font-bold': (row as any)[header] === 'P',
+                                'text-red-600 font-bold': (row as any)[header] === 'F',
+                                'text-gray-400 italic text-xs': !(row as any)[header]
+                            }">
+                                {{ (row as any)[header] || '-' }}
+                            </span>
+                        </div>
                     </template>
                 </UTable>
             </div>
