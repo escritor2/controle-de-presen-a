@@ -10,6 +10,6 @@ export default defineEventHandler(async (event) => {
         where: { id },
         data: {
             spreadsheetId: body.spreadsheetId
-        }
+        } as any
     })
 })

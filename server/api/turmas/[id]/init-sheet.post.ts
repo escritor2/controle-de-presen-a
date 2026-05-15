@@ -17,6 +17,14 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, statusMessage: 'Turma não encontrada ou sem planilha vinculada' });
   }
 
+  let spreadsheetId = turma.spreadsheetId.trim();
+  if (spreadsheetId.includes('docs.google.com')) {
+    const matches = spreadsheetId.match(/\/d\/(.*?)(\/|$)/);
+    if (matches && matches[1]) {
+      spreadsheetId = matches[1];
+    }
+  }
+
   const students = turma.alunos.map(a => ({
     matricula: a.aluno.matricula,
     nome: a.aluno.nome
@@ -34,7 +42,7 @@ export default defineEventHandler(async (event) => {
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  const proxyUrl = 'https://script.google.com/macros/s/AKfycbxFxjEhPynecv0vwdUSsfKa1bnJRKt8V8iZT66AClBKh5N5T0uHQIR9TuD99UwKVReo/exec';
+  const proxyUrl = 'https://script.google.com/macros/s/AKfycby8Bpj6lwApPa0O0Rd5VksULmHJv3K3Dt1babFy4hdC7cMXLL_6c2vjZTS-m65FCA3l/exec';
   const config = useRuntimeConfig();
 
   try {
@@ -43,16 +51,16 @@ export default defineEventHandler(async (event) => {
       body: {
         action: 'initialize',
         token: config.syncToken,
-        spreadsheetId: turma.spreadsheetId,
+        spreadsheetId,
         students,
         dates
       }
     });
     return response;
   } catch (err: any) {
-    throw createError({ 
-      statusCode: 500, 
-      statusMessage: 'Erro ao conectar com o Google Sheets: ' + (err.message || '') 
+    throw createError({
+      statusCode: 500,
+      statusMessage: 'Erro ao conectar com o Google Sheets: ' + (err.message || '')
     });
   }
 });

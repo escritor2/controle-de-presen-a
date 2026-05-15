@@ -13,26 +13,26 @@ interface PresencaData {
 }
 
 const { data: presenca, pending, error, refresh } = await useFetch<PresencaData>(`/api/turmas/${route.params.id}/frequencia`)
-
 const { data: turma } = await useFetch(`/api/turmas/${route.params.id}`)
 
+// Transformamos os headers em colunas seguras (trocando / por _)
 const colunas = computed(() => {
     if (!presenca.value?.headers) return []
-    return presenca.value.headers.map((h: string) => ({ id: h, header: h })) as any
+    return presenca.value.headers.map((h: string) => ({ 
+        id: h.replace(/\//g, '_'), // ID seguro para slots
+        header: h,                 // O UTable v4 usa 'header' para o texto da coluna
+        originalHeader: h          // Guardamos o original para a API
+    })) as any
 })
 
 const syncLoading = ref(false)
 const toast = useToast()
 
-const handleRefresh = async () => {
-    await refresh()
-}
-
 const handleSync = async () => {
     syncLoading.value = true
     try {
-        await $fetch(`/api/turmas/${route.params.id}/sync`, { method: 'POST' })
-        toast.add({ title: 'Sucesso', description: 'Banco de dados sincronizado!', color: 'success' })
+        const res: any = await $fetch(`/api/turmas/${route.params.id}/sync`, { method: 'POST' })
+        toast.add({ title: 'Sucesso', description: res.message || 'Banco de dados sincronizado!', color: 'success' })
         await refresh()
     } catch (err: any) {
         toast.add({ title: 'Erro', description: err.data?.statusMessage || 'Erro ao sincronizar', color: 'error' })
@@ -41,29 +41,38 @@ const handleSync = async () => {
     }
 }
 
-async function togglePresenca(row: any, header: string) {
-    if (header === 'Nome' || header === 'Matricula') return
+async function togglePresenca(row: any, originalHeader: string) {
+    if (originalHeader === 'Nome' || originalHeader === 'Matricula') return
 
-    const atual = row[header]
-    const novoStatus = atual === 'P' ? 'F' : 'P'
+    const atual = row[originalHeader]
+    
+    // Converte para número, assumindo 0 se for vazio ou '-'
+    let faltasNum = 0
+    if (atual !== undefined && atual !== '-' && atual !== null) {
+        faltasNum = Number(atual)
+        if (isNaN(faltasNum)) faltasNum = 0
+    }
+
+    // Ciclo de faltas: 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
+    const novoStatus = faltasNum >= 5 ? 0 : faltasNum + 1
     
     // Atualização otimista na UI
-    row[header] = novoStatus
+    row[originalHeader] = novoStatus
 
     try {
         await $fetch(`/api/turmas/${route.params.id}/frequencia`, {
             method: 'POST',
             body: {
-                alunoId: row.id, // O servidor envia como row.id
-                data: header,
-                presente: novoStatus === 'P'
+                alunoId: row.id,
+                data: originalHeader,
+                faltas: novoStatus
             }
         })
-        toast.add({ title: 'Atualizado', description: `Presença de ${row.Nome} alterada para ${novoStatus}`, color: 'success', duration: 2000 })
+        toast.add({ title: 'Atualizado', description: `Faltas de ${row.Nome} no dia alteradas para ${novoStatus}`, color: 'success', duration: 2000 })
     } catch (err: any) {
-        // Reverte em caso de erro
-        row[header] = atual
-        toast.add({ title: 'Erro', description: 'Não foi possível salvar a presença', color: 'error' })
+        row[originalHeader] = atual
+        toast.add({ title: 'Erro', description: err.data?.statusMessage || err.data?.message || err.message || 'Não foi possível salvar a presença', color: 'error' })
+        console.error("Erro ao salvar:", err.data)
     }
 }
 </script>
@@ -74,7 +83,7 @@ async function togglePresenca(row: any, header: string) {
             <UButton icon="i-heroicons-arrow-left" color="neutral" variant="ghost" @click="navigateTo('/dashboard')" />
             <div>
                 <h1 class="text-2xl font-bold text-gray-900 dark:text-white">{{ (turma as any)?.nome || 'Controle de Presença' }}</h1>
-                <p class="text-gray-500">Dados da planilha em tempo real.</p>
+                <p class="text-gray-500">Gestão de frequência da turma.</p>
             </div>
             <div class="ml-auto flex gap-2">
                 <UButton 
@@ -93,8 +102,8 @@ async function togglePresenca(row: any, header: string) {
             color="error"
             variant="soft"
             icon="i-heroicons-exclamation-triangle"
-            title="Erro ao sincronizar"
-            description="Não foi possível obter os dados da planilha. Verifique se ela está pública ou se o ID está correto."
+            title="Erro ao carregar dados"
+            :description="error.data?.statusMessage || error.message || 'Verifique a conexão ou se a planilha está vinculada corretamente.'"
         />
 
         <UCard v-else>
@@ -104,17 +113,25 @@ async function togglePresenca(row: any, header: string) {
                     :columns="colunas"
                     :data="presenca?.data || []"
                 >
-                    <template v-for="header in presenca?.headers" :key="header" #[`${header}-cell`]="{ row }">
+                    <!-- Criamos slots dinâmicos usando os IDs seguros (com underline) -->
+                    <template v-for="col in colunas" :key="col.id" #[`${col.id}-cell`]="{ row }">
                         <div 
-                            class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded text-center transition-colors"
-                            @click="togglePresenca(row, header)"
+                            v-if="col.originalHeader !== 'Nome' && col.originalHeader !== 'Matricula'"
+                            class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded text-center transition-colors min-w-[50px]"
+                            @click="togglePresenca(row.original, col.originalHeader)"
                         >
                             <span :class="{
-                                'text-green-600 font-bold': (row as any)[header] === 'P',
-                                'text-red-600 font-bold': (row as any)[header] === 'F',
-                                'text-gray-400 italic text-xs': !(row as any)[header]
+                                'text-green-600 font-bold': row.original[col.originalHeader] === 0,
+                                'text-amber-500 font-bold': row.original[col.originalHeader] > 0 && row.original[col.originalHeader] < 5,
+                                'text-red-600 font-bold': row.original[col.originalHeader] === 5,
+                                'text-gray-400 italic text-xs': row.original[col.originalHeader] === undefined || row.original[col.originalHeader] === null || row.original[col.originalHeader] === '-'
                             }">
-                                {{ (row as any)[header] || '-' }}
+                                {{ (row.original[col.originalHeader] !== undefined && row.original[col.originalHeader] !== null) ? row.original[col.originalHeader] : '-' }}
+                            </span>
+                        </div>
+                        <div v-else class="p-2">
+                            <span :class="{'font-medium': col.id === 'Nome'}">
+                                {{ row.original[col.originalHeader] }}
                             </span>
                         </div>
                     </template>

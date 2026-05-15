@@ -13,6 +13,7 @@ const colunas = [
     { id: 'codigo', header: 'Código' },
     { id: 'nome', header: 'Nome' },
     { id: 'curso_nome', header: 'Curso' },
+    { id: 'alunos_count', header: 'Alunos' },
     { id: 'disciplinas', header: 'Disciplinas (Professores)' },
     { id: 'spreadsheetId', header: 'Planilha ID' },
     { id: 'acoes', header: 'Ações' }
@@ -31,7 +32,7 @@ const toast = useToast()
 
 function abrirEdicao(row: any) {
     turmaSelecionada.value = row
-    spreadsheetId.value = row.spreadsheetId || ''
+    spreadsheetId.value = (row as any).spreadsheetId || ''
     isOpen.value = true
 }
 
@@ -61,7 +62,12 @@ async function salvarPlanilha() {
 }
 
 async function adicionarDisciplina() {
-    if (!turmaSelecionada.value || !novaDisciplina.value.nome || !novaDisciplina.value.professorId) return
+    if (!turmaSelecionada.value) return
+    
+    if (!novaDisciplina.value.nome || !novaDisciplina.value.professorId) {
+        toast.add({ title: 'Atenção', description: 'Preencha o nome da disciplina e selecione um professor', color: 'warning' })
+        return
+    }
 
     carregando.value = true
     try {
@@ -80,7 +86,10 @@ async function adicionarDisciplina() {
 }
 
 async function criarTurma() {
-    if (!novaTurma.value.nome || !novaTurma.value.codigo || !novaTurma.value.cursoId) return
+    if (!novaTurma.value.nome || !novaTurma.value.codigo || !novaTurma.value.cursoId) {
+        toast.add({ title: 'Atenção', description: 'Preencha todos os campos obrigatórios', color: 'warning' })
+        return
+    }
 
     carregando.value = true
     try {
@@ -100,7 +109,7 @@ async function criarTurma() {
 }
 
 async function inicializarPlanilha() {
-    if (!turmaSelecionada.value || !turmaSelecionada.value.spreadsheetId) {
+    if (!turmaSelecionada.value || !(turmaSelecionada.value as any).spreadsheetId) {
         toast.add({ title: 'Atenção', description: 'Vincule uma planilha primeiro', color: 'warning' })
         return
     }
@@ -125,22 +134,21 @@ async function inicializarPlanilha() {
 
 function baixarModelo() {
     const hoje = new Date()
-    let colunas = ['Matricula', 'Nome']
+    let colunasHeader = ['Matricula', 'Nome']
     
-    // Adiciona 10 dias úteis como exemplo
     let dias = 0
     let cursor = 0
     while (dias < 10) {
         const d = new Date()
         d.setDate(hoje.getDate() + cursor)
         if (d.getDay() !== 0 && d.getDay() !== 6) {
-            colunas.push(`${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`)
+            colunasHeader.push(`${d.getDate().toString().padStart(2, '0')}/${(d.getMonth() + 1).toString().padStart(2, '0')}`)
             dias++
         }
         cursor++
     }
 
-    const csvContent = colunas.join(',') + '\n' + '12345,Aluno Exemplo,P,P,P,P,P,P,P,P,P,P'
+    const csvContent = colunasHeader.join(',') + '\n' + '12345,Aluno Exemplo,P,P,P,P,P,P,P,P,P,P'
     const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' })
     const link = document.createElement('a')
     link.href = URL.createObjectURL(blob)
@@ -152,14 +160,16 @@ function baixarModelo() {
 
 watch(() => novaTurma.value.codigo, (newVal) => {
     if (newVal) {
-        novaTurma.value.codigo = formatCodigoTurma(newVal)
+        novaTurma.value.codigo = newVal.toUpperCase().trim()
     }
 })
 
-watch(() => novaTurma.value.termo, (newVal: any) => {
-    if (typeof newVal === 'string') {
-        novaTurma.value.termo = parseInt(newVal.replace(/\D/g, '')) || 1
-    }
+const listaProfessores = computed(() => {
+    return (professores.value || []).map((p: any) => ({ label: p.nome, value: p.id }))
+})
+
+const listaCursos = computed(() => {
+    return (cursos.value || []).map((c: any) => ({ label: c.nome, value: c.id }))
 })
 </script>
 
@@ -182,15 +192,29 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
 
         <UCard>
             <UTable :columns="colunas" :data="turmas || []">
+                <template #codigo-cell="{ row }">
+                    <span class="font-bold text-gray-900 dark:text-white">{{ row.original.codigo }}</span>
+                </template>
+
+                <template #nome-cell="{ row }">
+                    <span class="text-gray-700 dark:text-gray-300 font-medium">{{ row.original.nome }}</span>
+                </template>
+
                 <template #curso_nome-cell="{ row }">
                     {{ row.original.curso?.nome }}
+                </template>
+
+                <template #alunos_count-cell="{ row }">
+                    <UBadge color="primary" variant="subtle" size="sm">
+                        {{ row.original._count?.alunos || 0 }}
+                    </UBadge>
                 </template>
 
                 <template #disciplinas-cell="{ row }">
                     <div class="flex flex-col gap-1">
                         <div v-for="d in row.original.disciplinas" :key="d.id" class="text-sm">
                             <span class="font-medium text-red-600">{{ d.nome }}:</span>
-                            <span class="text-gray-600"> {{ d.professor.nome }}</span>
+                            <span class="text-gray-600 dark:text-gray-400"> {{ d.professor?.nome }}</span>
                         </div>
                         <UButton
                             v-if="!row.original.disciplinas?.length"
@@ -213,8 +237,8 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
                 </template>
 
                 <template #spreadsheetId-cell="{ row }">
-                    <code v-if="row.original.spreadsheetId" class="text-xs bg-gray-100 p-1 rounded">{{ row.original.spreadsheetId }}</code>
-                    <span v-else class="text-gray-400 italic">Não vinculado</span>
+                    <code v-if="row.original.spreadsheetId" class="text-xs bg-gray-100 dark:bg-gray-800 p-1 rounded">{{ row.original.spreadsheetId.substring(0, 15) }}...</code>
+                    <span v-else class="text-gray-400 italic text-xs">Não vinculado</span>
                 </template>
 
                 <template #acoes-cell="{ row }">
@@ -232,11 +256,11 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
         </UCard>
 
         <!-- Modal Editar Planilha -->
-        <UModal v-model:open="isOpen" title="Vincular Planilha" :description="`Insira o ID da planilha do Google Sheets para a turma ${turmaSelecionada?.nome}`">
+        <UModal v-model:open="isOpen" :title="`Vincular Planilha`" :description="`Turma: ${turmaSelecionada?.nome || ''}`">
             <template #body>
                 <div class="space-y-4">
-                    <UFormField label="Google Sheet ID" name="spreadsheetId">
-                        <UInput v-model="spreadsheetId" placeholder="ex: 1BxiMVs0XRA5nFMdKvBdBAngmUUq-j1991AAD96GvW-g" class="w-full" />
+                    <UFormField label="Google Sheet ID ou URL" name="spreadsheetId">
+                        <UInput v-model="spreadsheetId" placeholder="Cole o link da planilha aqui" class="w-full" />
                     </UFormField>
                 </div>
             </template>
@@ -245,7 +269,7 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
                 <div class="flex justify-between w-full">
                     <UButton 
                         v-if="spreadsheetId" 
-                        label="Exportar Alunos para Google" 
+                        label="Exportar para Google" 
                         icon="i-heroicons-cloud-arrow-up" 
                         color="primary" 
                         variant="soft" 
@@ -254,14 +278,14 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
                     />
                     <div class="flex gap-2">
                         <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancelar</UButton>
-                        <UButton color="error" :loading="carregando" @click="salvarPlanilha">Salvar Vínculo</UButton>
+                        <UButton color="error" :loading="carregando" @click="salvarPlanilha">Salvar</UButton>
                     </div>
                 </div>
             </template>
         </UModal>
 
         <!-- Modal Adicionar Disciplina/Professor -->
-        <UModal v-model:open="isAddDisciplinaOpen" title="Atribuir Professor à Turma" description="Defina a disciplina e o professor responsável.">
+        <UModal v-model:open="isAddDisciplinaOpen" title="Atribuir Professor" description="Defina a disciplina e o professor.">
             <template #body>
                 <div class="space-y-4">
                     <UFormField label="Nome da Disciplina" name="disciplina">
@@ -271,7 +295,7 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
                     <UFormField label="Selecionar Professor" name="professor">
                         <USelect
                             v-model="novaDisciplina.professorId"
-                            :items="professores?.map(p => ({ label: p.nome, value: p.id })) || []"
+                            :items="listaProfessores"
                             placeholder="Selecione um professor"
                             class="w-full"
                         />
@@ -282,21 +306,21 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
             <template #footer>
                 <div class="flex justify-end gap-2">
                     <UButton color="neutral" variant="ghost" @click="isAddDisciplinaOpen = false">Cancelar</UButton>
-                    <UButton color="error" :loading="carregando" @click="adicionarDisciplina">Vincular Professor</UButton>
+                    <UButton color="error" :loading="carregando" @click="adicionarDisciplina">Vincular</UButton>
                 </div>
             </template>
         </UModal>
 
         <!-- Modal Nova Turma -->
-        <UModal v-model:open="isNovaTurmaOpen" title="Nova Turma" description="Cadastre uma nova turma no sistema.">
+        <UModal v-model:open="isNovaTurmaOpen" title="Nova Turma" description="Cadastre uma nova turma.">
             <template #body>
                 <div class="grid grid-cols-2 gap-4">
                     <UFormField label="Nome da Turma" name="nome" class="col-span-2">
-                        <UInput v-model="novaTurma.nome" placeholder="ex: Desenvolvimento de Sistemas A" class="w-full" maxlength="100" />
+                        <UInput v-model="novaTurma.nome" placeholder="ex: Desenvolvimento de Sistemas" class="w-full" maxlength="100" />
                     </UFormField>
 
                     <UFormField label="Código" name="codigo">
-                        <UInput v-model="novaTurma.codigo" placeholder="ex: 101, 202..." class="w-full" maxlength="15" />
+                        <UInput v-model="novaTurma.codigo" placeholder="ex: 1DS" class="w-full" maxlength="15" />
                     </UFormField>
 
                     <UFormField label="Termo/Semestre" name="termo">
@@ -314,7 +338,7 @@ watch(() => novaTurma.value.termo, (newVal: any) => {
                     <UFormField label="Curso" name="curso">
                         <USelect
                             v-model="novaTurma.cursoId"
-                            :items="cursos?.map(c => ({ label: c.nome, value: c.id })) || []"
+                            :items="listaCursos"
                             placeholder="Selecione o curso"
                             class="w-full"
                         />

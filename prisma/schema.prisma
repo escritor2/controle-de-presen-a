@@ -1,15 +1,3 @@
-enum Role{
-  ADMIN
-  EMPRESA 
-  PROFESSOR
-}
-
-enum Subturma{
-  A
-  B
-  GERAL
-}
-
 generator client {
   provider = "prisma-client-js"
 }
@@ -51,8 +39,8 @@ model AlunoNaTurma {
   alunoId  String
   turmaId  String
   subturma Subturma @default(GERAL)
-  turma    Turma    @relation(fields: [turmaId], references: [id], onDelete: Cascade)
   aluno    Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  turma    Turma    @relation(fields: [turmaId], references: [id], onDelete: Cascade)
 
   @@id([alunoId, turmaId])
 }
@@ -90,26 +78,36 @@ model Disciplina {
   nome        String
   turmaId     String
   professorId String
-  professor   Professor    @relation(fields: [professorId], references: [id], onDelete: Cascade)
   turma       Turma        @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  professor   Professor    @relation(fields: [professorId], references: [id], onDelete: Cascade)
   frequencias Frequencia[]
 }
 
 model Frequencia {
   id           String     @id @default(uuid())
   data         DateTime   @default(now())
-  presente     Boolean
+  faltas       Int        @default(0)
   observacao   String?
   createdAt    DateTime   @default(now())
   updatedAt    DateTime   @updatedAt
   alunoId      String
   disciplinaId String
   turmaId      String
-  turma        Turma      @relation(fields: [turmaId], references: [id], onDelete: Cascade)
-  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
   aluno        Aluno      @relation(fields: [alunoId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+  turma        Turma      @relation(fields: [turmaId], references: [id], onDelete: Cascade)
 
   @@unique([alunoId, disciplinaId, data])
 }
 
+enum Role {
+  ADMIN
+  EMPRESA
+  PROFESSOR
+}
 
+enum Subturma {
+  A
+  B
+  GERAL
+}

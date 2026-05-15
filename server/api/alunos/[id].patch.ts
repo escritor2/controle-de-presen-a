@@ -4,6 +4,10 @@ const updateAlunoSchema = z.object({
   nome: z.string().min(3, "Nome deve ter no mínimo 3 caracteres"),
   matricula: z.string().min(1, "Matrícula é obrigatória"),
   empresaId: z.string().optional().nullable(),
+  turmas: z.array(z.object({
+    turmaId: z.string(),
+    subturma: z.enum(['A', 'B', 'GERAL']).optional().default('GERAL')
+  })).optional().default([])
 });
 
 export default defineEventHandler(async (event) => {
@@ -21,7 +25,7 @@ export default defineEventHandler(async (event) => {
     throw createError({ statusCode: 400, data: result.error.format() });
   }
 
-  const { nome, matricula, empresaId } = result.data;
+  const { nome, matricula, empresaId, turmas } = result.data;
 
   try {
     return await prisma.aluno.update({
@@ -29,7 +33,21 @@ export default defineEventHandler(async (event) => {
       data: {
         nome,
         matricula,
-        empresaId: empresaId || null
+        empresaId: empresaId || null,
+        turmas: {
+          deleteMany: {},
+          create: turmas.map(t => ({
+            turmaId: t.turmaId,
+            subturma: t.subturma as any
+          }))
+        }
+      },
+      include: {
+        turmas: {
+          include: {
+            turma: true
+          }
+        }
       }
     });
   } catch (error: any) {
