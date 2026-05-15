@@ -1,9 +1,6 @@
 export default defineEventHandler(async (event) => {
-    const userId = getCookie(event, 'auth_token') // Simplificado, idealmente viria de um session validado
-
-    if (!userId) {
-        throw createError({ statusCode: 401, statusMessage: 'Não autorizado' })
-    }
+    const user = await requireAuth(event)
+    const userId = user.id
 
     const professor = await prisma.professor.findUnique({
         where: { userId },

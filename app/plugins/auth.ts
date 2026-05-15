@@ -5,7 +5,13 @@ export default defineNuxtPlugin(async (nuxtApp) => {
     if (token.value && !user.value) {
         try {
             // No servidor, precisamos do fetch com contexto de requisição
-            const fetcher = import.meta.server ? useRequestFetch() : $fetch
+            let fetcher: any
+            if (import.meta.server) {
+                fetcher = useRequestFetch()
+            } else {
+                fetcher = $fetch
+            }
+
             const data = await fetcher('/api/auth/me')
             user.value = data as any
         } catch (error) {

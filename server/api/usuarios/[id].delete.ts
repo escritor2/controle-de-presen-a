@@ -1,4 +1,5 @@
 export default defineEventHandler(async (event) => {
+    const currentUser = await requireAdmin(event)
     const id = getRouterParam(event, 'id')
 
     if (!id) {
@@ -8,11 +9,15 @@ export default defineEventHandler(async (event) => {
         })
     }
 
+    if (currentUser.id === id) {
+        throw createError({
+            statusCode: 400,
+            statusMessage: 'Você não pode excluir sua própria conta administrador'
+        })
+    }
+
     try {
-        // Primeiro deletamos as relações se necessário
-        // Nota: No schema atual, User tem professor (1:1) e empresa (N:1)
-        // prisma handles cascading if configured, but let's be safe
-        
+
         await prisma.user.delete({
             where: { id }
         })

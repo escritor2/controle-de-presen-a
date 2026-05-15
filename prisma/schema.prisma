@@ -2,14 +2,12 @@ enum Role{
   ADMIN
   EMPRESA 
   PROFESSOR
-
 }
 
 enum Subturma{
   A
   B
   GERAL
-
 }
 
 generator client {
@@ -20,126 +18,98 @@ datasource db {
   provider = "sqlite"
 }
 
-model User{
-  id String @id @default(uuid())
-  email String @unique
-  senha String 
-  role Role @default(PROFESSOR)
-  createdAt DateTime @default(now())
-
+model User {
+  id        String     @id @default(uuid())
+  email     String     @unique
+  senha     String
+  role      Role       @default(PROFESSOR)
+  createdAt DateTime   @default(now())
   empresaId String?
-  empresa Empresa? @relation(fields: [empresaId], references: [id])
-  professor Professor? 
-
+  professor Professor?
+  empresa   Empresa?   @relation(fields: [empresaId], references: [id], onDelete: Cascade)
 }
 
-
-model Empresa{
-  id String @id @default(uuid())
-  nome String
-  cnpj String? @unique
+model Empresa {
+  id       String  @id @default(uuid())
+  nome     String
+  cnpj     String? @unique
+  alunos   Aluno[]
   usuarios User[]
-  alunos Aluno[]
-
 }
 
-
-model Aluno{
-  id String @id @default(uuid())
-  nome String 
-  matricula String @unique
-
-
-
-  empresaId String?
-  empresa Empresa? @relation(fields: [empresaId], references: [id])
-
-  turmas AlunoNaTurma[]
+model Aluno {
+  id          String         @id @default(uuid())
+  nome        String
+  matricula   String         @unique
+  empresaId   String?
+  empresa     Empresa?       @relation(fields: [empresaId], references: [id], onDelete: Cascade)
+  turmas      AlunoNaTurma[]
   frequencias Frequencia[]
-
 }
 
-model AlunoNaTurma{
-  alunoId String
-  turmaId String
+model AlunoNaTurma {
+  alunoId  String
+  turmaId  String
   subturma Subturma @default(GERAL)
-
-  aluno Aluno @relation(fields: [alunoId], references: [id])
-  turma Turma @relation(fields: [turmaId], references: [id])
+  turma    Turma    @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  aluno    Aluno    @relation(fields: [alunoId], references: [id], onDelete: Cascade)
 
   @@id([alunoId, turmaId])
-
 }
 
-
-model Professor{
-  id String @id @default(uuid())
-  nome String
-  userId String @unique
-  user User @relation(fields: [userId], references: [id])
-  
-  disciplinas Disciplina[]  
-}
-
-model Curso{
-  id String @id @default(uuid())
-  nome String 
-  turmas Turma[]
-
-
-}
-
-model Turma{
-  id String @id @default(uuid())
-  nome String
-  termo Int 
-  codigo String @unique 
-  periodo String // "Manhã", "Tarde", "Noite"
-
-  cursoId String 
-  curso Curso @relation(fields: [cursoId], references: [id])
-
-  spreadsheetId String?
-
-  alunos AlunoNaTurma[]
+model Professor {
+  id          String       @id @default(uuid())
+  nome        String
+  userId      String       @unique
   disciplinas Disciplina[]
-  frequencias Frequencia[]
+  user        User         @relation(fields: [userId], references: [id], onDelete: Cascade)
 }
 
+model Curso {
+  id     String  @id @default(uuid())
+  nome   String
+  turmas Turma[]
+}
 
-model Disciplina{
-  id String @id @default(uuid())
-  nome String 
+model Turma {
+  id            String         @id @default(uuid())
+  nome          String
+  termo         Int
+  codigo        String         @unique
+  periodo       String
+  cursoId       String
+  spreadsheetId String?
+  alunos        AlunoNaTurma[]
+  disciplinas   Disciplina[]
+  frequencias   Frequencia[]
+  curso         Curso          @relation(fields: [cursoId], references: [id], onDelete: Cascade)
+}
 
-  turmaId String 
-  turma Turma @relation(fields:[turmaId], references: [id])
-
+model Disciplina {
+  id          String       @id @default(uuid())
+  nome        String
+  turmaId     String
   professorId String
-  professor Professor @relation(fields: [professorId], references: [id])
-
+  professor   Professor    @relation(fields: [professorId], references: [id], onDelete: Cascade)
+  turma       Turma        @relation(fields: [turmaId], references: [id], onDelete: Cascade)
   frequencias Frequencia[]
-
 }
 
-model Frequencia{
-  id String @id @default(uuid())
-  data DateTime @default(now())
-  presente Boolean
-  observacao String?
-
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
-
-  alunoId String
-  aluno Aluno @relation(fields: [alunoId], references: [id])
-
-  disciplinaId String 
-  disciplina Disciplina @relation(fields: [disciplinaId],  references: [id])
-
-  turmaId String
-  turma Turma @relation(fields: [turmaId], references: [id])
+model Frequencia {
+  id           String     @id @default(uuid())
+  data         DateTime   @default(now())
+  presente     Boolean
+  observacao   String?
+  createdAt    DateTime   @default(now())
+  updatedAt    DateTime   @updatedAt
+  alunoId      String
+  disciplinaId String
+  turmaId      String
+  turma        Turma      @relation(fields: [turmaId], references: [id], onDelete: Cascade)
+  disciplina   Disciplina @relation(fields: [disciplinaId], references: [id], onDelete: Cascade)
+  aluno        Aluno      @relation(fields: [alunoId], references: [id], onDelete: Cascade)
 
   @@unique([alunoId, disciplinaId, data])
-
 }
+
 

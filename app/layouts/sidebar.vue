@@ -10,17 +10,15 @@
 
     <!-- Navegação Dinâmica -->
     <div class="flex-1 overflow-y-auto p-4">
-      <UVerticalNavigation 
-        :links="links" 
-        :ui="{
-          active: 'text-primary-500 before:bg-primary-500',
-          icon: { active: 'text-primary-500' }
-        }"
+      <UNavigationMenu 
+        :items="links" 
+        orientation="vertical"
+        class="w-full"
       />
     </div>
 
     <!-- Perfil do Usuário no Rodapé -->
-    <div class="p-4 border-t border-gray-200 dark:border-gray-800">
+    <div class="p-4 border-t border-gray-200 dark:border-gray-800 space-y-4">
       <div class="flex items-center gap-3 p-2 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
         <UAvatar :alt="user?.email" size="sm" />
         <div class="min-w-0 flex-1">
@@ -30,6 +28,18 @@
           </UBadge>
         </div>
       </div>
+      
+      <UButton
+        icon="i-heroicons-arrow-left-on-rectangle"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        block
+        class="justify-start text-gray-500 hover:text-red-600"
+        @click="logout"
+      >
+        Sair do Sistema
+      </UButton>
     </div>
   </div>
 
@@ -41,5 +51,5 @@
 
 <script setup lang="ts">
 const { links } = useNavigation()
-const { user } = useAuth()
+const { user, logout } = useAuth()
 </script>

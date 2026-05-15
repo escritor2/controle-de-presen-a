@@ -13,23 +13,11 @@ async function login() {
     carregando.value = true
     erroMsg.value = ''
     try {
-        const response = await $fetch('/api/auth/login', {
-            method: 'POST',
-            body: {
-                email: estado.value.email,
-                senha: estado.value.senha
-            }
+        await authLogin({
+            email: estado.value.email,
+            senha: estado.value.senha
         })
-        
-        // Atualiza o estado do usuário (o useAuth poderia fazer isso, mas vamos garantir o redirecionamento aqui)
-        const { user } = useAuth()
-        user.value = response
-
-        if (response.role === 'ADMIN') {
-            await navigateTo('/admin')
-        } else {
-            await navigateTo('/dashboard')
-        }
+        // O redirecionamento já acontece dentro do authLogin
     } catch (err: any) {
         erroMsg.value = err.data?.statusMessage || 'Erro ao entrar. Verifique suas credenciais.'
     } finally {

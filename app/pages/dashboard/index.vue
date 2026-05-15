@@ -23,7 +23,7 @@ const { data: turmas } = await useFetch('/api/professor/turmas')
             >
                 <div class="flex items-start justify-between">
                     <div>
-                        <UBadge color="red" variant="subtle" class="mb-2">{{ turma.curso.nome }}</UBadge>
+                        <UBadge color="error" variant="subtle" class="mb-2">{{ turma.curso.nome }}</UBadge>
                         <h3 class="text-lg font-bold text-gray-900 dark:text-white">{{ turma.nome }}</h3>
                         <p class="text-sm text-gray-500">{{ turma.codigo }} - {{ turma.periodo }}</p>
                     </div>

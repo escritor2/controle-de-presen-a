@@ -7,11 +7,11 @@ definePageMeta({
 const { data: usuarios, refresh } = await useFetch('/api/usuarios')
 
 const colunas = [
-    { key: 'email', label: 'E-mail' },
-    { key: 'role', label: 'Cargo' },
-    { key: 'createdAt', label: 'Criado em' },
-    { key: 'acoes', label: 'Ações' }
-]
+    { id: 'email', header: 'E-mail' },
+    { id: 'role', header: 'Cargo' },
+    { id: 'createdAt', header: 'Criado em' },
+    { id: 'acoes', header: 'Ações' }
+] as any
 
 const isOpen = ref(false)
 const novoUsuario = ref({
@@ -26,7 +26,7 @@ const toast = useToast()
 
 async function criarUsuario() {
     if (!novoUsuario.value.email || !novoUsuario.value.senha) {
-        toast.add({ title: 'Atenção', description: 'Preencha todos os campos obrigatórios', color: 'orange' })
+        toast.add({ title: 'Atenção', description: 'Preencha todos os campos obrigatórios', color: 'warning' })
         return
     }
 
@@ -77,77 +77,71 @@ const formatarData = (data: string) => {
         </div>
 
         <UCard>
-            <UTable :columns="colunas" :rows="usuarios?.usuarios || []">
-                <template #email-data="{ row }">
+            <UTable :columns="colunas" :data="usuarios?.usuarios || []">
+                <template #email-cell="{ row }">
                     <div class="flex items-center gap-2">
-                        <UAvatar :alt="row.email" size="xs" />
-                        <span>{{ row.email }}</span>
+                        <UAvatar :alt="row.original.email" size="xs" />
+                        <span>{{ row.original.email }}</span>
                     </div>
                 </template>
 
-                <template #role-data="{ row }">
-                    <UBadge :color="row.role === 'ADMIN' ? 'error' : 'primary'" variant="soft">
-                        {{ row.role }}
+                <template #role-cell="{ row }">
+                    <UBadge :color="row.original.role === 'ADMIN' ? 'error' : 'primary'" variant="soft">
+                        {{ row.original.role }}
                     </UBadge>
                 </template>
 
-                <template #createdAt-data="{ row }">
-                    {{ formatarData(row.createdAt) }}
+                <template #createdAt-cell="{ row }">
+                    {{ formatarData(row.original.createdAt) }}
                 </template>
 
-                <template #acoes-data="{ row }">
+                <template #acoes-cell="{ row }">
                     <UButton
                         icon="i-heroicons-trash"
                         color="error"
                         variant="ghost"
                         size="xs"
-                        @click="excluirUsuario(row.id)"
+                        @click="excluirUsuario(row.original.id)"
                     />
                 </template>
             </UTable>
         </UCard>
 
         <!-- Modal Novo Usuário -->
-        <UModal v-model="isOpen">
-            <UCard>
-                <template #header>
-                    <div class="flex items-center justify-between">
-                        <h3 class="text-base font-semibold">Novo Usuário</h3>
-                        <UButton color="neutral" variant="ghost" icon="i-heroicons-x-mark" @click="isOpen = false" />
-                    </div>
-                </template>
-
+        <UModal v-model:open="isOpen" title="Novo Usuário" description="Adicione um novo professor ou administrador ao sistema.">
+            <template #body>
                 <div class="space-y-4">
                     <UFormField label="Nome Completo" name="nome">
-                        <UInput v-model="novoUsuario.nome" placeholder="Nome do Professor" />
+                        <UInput v-model="novoUsuario.nome" placeholder="Nome do Professor" class="w-full" />
                     </UFormField>
 
                     <UFormField label="E-mail" name="email">
-                        <UInput v-model="novoUsuario.email" type="email" placeholder="email@senai.br" />
+                        <UInput v-model="novoUsuario.email" type="email" placeholder="email@senai.br" class="w-full" />
                     </UFormField>
 
                     <UFormField label="Senha" name="senha">
-                        <UInput v-model="novoUsuario.senha" type="password" placeholder="Mínimo 6 caracteres" />
+                        <UInput v-model="novoUsuario.senha" type="password" placeholder="Mínimo 6 caracteres" class="w-full" />
                     </UFormField>
 
                     <UFormField label="Cargo" name="role">
                         <USelect
                             v-model="novoUsuario.role"
-                            :options="[
+                            :items="[
                                 { label: 'Professor (Comum)', value: 'PROFESSOR' },
                                 { label: 'Administrador', value: 'ADMIN' }
                             ]"
+                            class="w-full"
                         />
                     </UFormField>
                 </div>
+            </template>
 
-                <template #footer>
-                    <div class="flex justify-end gap-2">
-                        <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancelar</UButton>
-                        <UButton color="error" :loading="carregando" @click="criarUsuario">Salvar</UButton>
-                    </div>
-                </template>
-            </UCard>
+            <template #footer>
+                <div class="flex justify-end gap-2">
+                    <UButton color="neutral" variant="ghost" @click="isOpen = false">Cancelar</UButton>
+                    <UButton color="error" :loading="carregando" @click="criarUsuario">Salvar Usuário</UButton>
+                </div>
+            </template>
         </UModal>
     </div>
 </template>

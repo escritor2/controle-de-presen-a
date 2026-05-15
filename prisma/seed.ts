@@ -40,11 +40,29 @@ async function main(){
         }
     })
 
+    const professorPassword = await hashPassword('professor123')
     const userProf = await prisma.user.create({
         data: {
             email: 'mc.gorilla@escolar.com',
-            senha: '$2b$10$2vos8X.qfHsgyI5yPDxbze/PDoDqGGrdKEuRcatN.SdexQeAgZs6C',
-            role: 'PROFESSOR'
+            senha: professorPassword,
+            role: 'PROFESSOR',
+            professor: {
+                create: {
+                    nome: 'MC Gorilla'
+                }
+            }
+        },
+        include: {
+            professor: true
+        }
+    })
+
+    // Criar uma disciplina para o professor
+    await prisma.disciplina.create({
+        data: {
+            nome: 'Rimas de Verão',
+            turmaId: turmaLegal.id,
+            professorId: userProf.professor!.id
         }
     })
 

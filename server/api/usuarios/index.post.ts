@@ -11,6 +11,8 @@ const createUserSchema = z.object({
 
 
 export default defineEventHandler(async (event) => {
+  await requireAdmin(event);
+
   const body = await readBody(event);
   const result = createUserSchema.safeParse(body);
 
@@ -28,13 +30,15 @@ export default defineEventHandler(async (event) => {
     role,
   };
 
-  if (role === 'PROFESSOR' && typeof nome === 'string') {
+  const finalNome = nome || email.split('@')[0];
+
+  if (role === 'PROFESSOR') {
     userData.professor = {
-      create: { nome }
+      create: { nome: finalNome }
     };
-  } else if (role === 'EMPRESA' && typeof nome === 'string') {
+  } else if (role === 'EMPRESA') {
     userData.empresa = {
-      create: { nome }
+      create: { nome: finalNome }
     };
   }
 
