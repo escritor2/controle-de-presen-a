@@ -49,9 +49,9 @@ function doPost(e) {
       sheet.getRange(1, 1, 1, header.length).setFontWeight("bold").setBackground("#f3f4f6");
       return response({ result: "success", message: "Inicializado" });
     }
-
-    var values = sheet.getDataRange().getDisplayValues();
+        var values = sheet.getDataRange().getDisplayValues();
     var header = values[0];
+    
     var colIndex = -1;
     for (var j = 0; j < header.length; j++) {
       if (header[j].toString().trim() == data.data.toString().trim()) {
@@ -84,6 +84,7 @@ function doPost(e) {
 function response(obj) {
   return ContentService.createTextOutput(JSON.stringify(obj)).setMimeType(ContentService.MimeType.JSON);
 }
+
 ```
 
 ### 3. Publicar o Script
