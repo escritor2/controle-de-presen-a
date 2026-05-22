@@ -65,7 +65,7 @@ export default defineEventHandler(async (event) => {
 
     if (turma.spreadsheetId) {
         const aluno = await prisma.aluno.findUnique({ where: { id: alunoId } });
-        const proxyUrl = 'https://script.google.com/macros/s/AKfycby8Bpj6lwApPa0O0Rd5VksULmHJv3K3Dt1babFy4hdC7cMXLL_6c2vjZTS-m65FCA3l/exec';
+        const proxyUrl = process.env.LINK_PROXY as any;
 
 
         if (aluno && aluno.matricula) {

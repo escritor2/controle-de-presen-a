@@ -1,6 +1,6 @@
 # Sistema de Controle de Presença
 
-Este é um sistema robusto para gestão de frequência escolar, desenvolvido com tecnologias modernas para oferecer uma experiência fluida tanto para administradores quanto para professores e empresas parceiras.
+Este é um sistema para gestão de frequência escolar, desenvolvido com tecnologias modernas para oferecer uma experiência fluida tanto para administradores quanto para professores e empresas parceiras.
 
 ## Tecnologias Utilizadas
 
@@ -75,9 +75,11 @@ O sistema possui uma funcionalidade de sincronização reversa. Sempre que o nú
    ```
 
 3. Configurar variáveis de ambiente:
-   Crie um arquivo .env na raiz do projeto (veja o .env.example se disponível):
+   Crie um arquivo .env na raiz do projeto (veja o .env.example):
    ```env
    DATABASE_URL="file:./prisma/database.db"
+   SYNC_TOKEN=<token definido no seu script no sheets>
+   PROXY_URL=<link da sua aplicação no sheets a ser usada como proxy>
    ```
 
 4. Preparar o banco de dados:

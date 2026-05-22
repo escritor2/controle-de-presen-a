@@ -265,7 +265,7 @@ const listaCursos = computed(() => {
                         />
                         <UButton 
                             icon="i-heroicons-trash"
-                            color="neutral"
+                            color="error"
                             variant="ghost"
                             size="xs"
                             @click="excluirTurma(row.original.id)"

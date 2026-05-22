@@ -28,27 +28,32 @@ export default defineEventHandler(async (event) => {
   const { nome, matricula, empresaId, turmas } = result.data;
 
   try {
-    return await prisma.aluno.update({
-      where: { id },
-      data: {
-        nome,
-        matricula,
-        empresaId: empresaId || null,
-        turmas: {
-          deleteMany: {},
-          create: turmas.map(t => ({
-            turmaId: t.turmaId,
-            subturma: t.subturma as any
-          }))
-        }
-      },
-      include: {
-        turmas: {
-          include: {
-            turma: true
+    return await prisma.$transaction(async (tx) => {
+      await tx.alunoNaTurma.deleteMany({
+        where: { alunoId: id }
+      });
+
+      return await tx.aluno.update({
+        where: { id },
+        data: {
+          nome,
+          matricula,
+          empresaId: empresaId || null,
+          turmas: {
+            create: turmas.map(t => ({
+              turmaId: t.turmaId,
+              subturma: t.subturma as any
+            }))
+          }
+        },
+        include: {
+          turmas: {
+            include: {
+              turma: true
+            }
           }
         }
-      }
+      });
     });
   } catch (error: any) {
     if (error.code === 'P2002') {

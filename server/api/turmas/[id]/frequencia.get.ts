@@ -18,14 +18,14 @@ export default defineEventHandler(async (event) => {
         throw createError({ statusCode: 404, statusMessage: 'Turma não encontrada ou planilha não vinculada' })
     }
 
-    // Segurança: Admin ou Professor da turma
+    // Admin ou Professor da turma
     const isProfessorDaTurma = turma.disciplinas.some(d => d.professorId === user.professorId)
     if (user.role !== 'ADMIN' && !isProfessorDaTurma) {
         throw createError({ statusCode: 403, statusMessage: 'Não autorizado' })
     }
 
     try {
-        // 1. Busca todos os alunos matriculados nesta turma
+        // Busca todos os alunos matriculados nesta turma
         const alunosNaTurma = await prisma.alunoNaTurma.findMany({
             where: { turmaId: id },
             include: {
@@ -33,7 +33,7 @@ export default defineEventHandler(async (event) => {
             }
         })
 
-        // 2. Busca todas as frequências da turma
+        // Busca todas as frequências da turma
         const frequencias = await prisma.frequencia.findMany({
             where: { turmaId: id },
             orderBy: { data: 'asc' }
@@ -63,7 +63,7 @@ export default defineEventHandler(async (event) => {
 
         const headers = ['Matricula', 'Nome', ...sortedDates]
 
-        // 3. Montar as linhas
+        // Montar as linhas
         const rows = alunosNaTurma.map(rel => {
             const row: any = {
                 id: rel.aluno.id,

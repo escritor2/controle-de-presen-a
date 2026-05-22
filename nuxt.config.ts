@@ -3,7 +3,7 @@ export default defineNuxtConfig({
   runtimeConfig:{
     databaseUrl: process.env.DATABASE_URL,
     public:{},
-    syncToken: process.env.SYNC_TOKEN || 'reserva-token-123',
+    syncToken: process.env.SYNC_TOKEN || 'token123',
   },
 
   typescript: {

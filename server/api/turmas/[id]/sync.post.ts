@@ -90,14 +90,14 @@ export default defineEventHandler(async (event) => {
 
             if (matricula === '' || nome === '' || limpar(nome) === 'nome') continue
 
-            // 1. Upsert Aluno
+            // Upsert Aluno
             const aluno = await prisma.aluno.upsert({
                 where: { matricula },
                 update: { nome },
                 create: { nome, matricula }
             })
 
-            // 2. Vincular Aluno à Turma
+            // Vincular Aluno à Turma
             await prisma.alunoNaTurma.upsert({
                 where: {
                     alunoId_turmaId: {
@@ -114,7 +114,7 @@ export default defineEventHandler(async (event) => {
 
             alunosSincronizados++
 
-            // 3. Processar Frequências
+            // Processar Frequências
             for (let i = 0; i < headers.length; i++) {
                 if (i === colIndexMatricula || i === colIndexNome) continue
                 

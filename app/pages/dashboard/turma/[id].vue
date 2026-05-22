@@ -20,7 +20,7 @@ const colunas = computed(() => {
     if (!presenca.value?.headers) return []
     return presenca.value.headers.map((h: string) => ({ 
         id: h.replace(/\//g, '_'), // ID seguro para slots
-        header: h,                 // O UTable v4 usa 'header' para o texto da coluna
+        header: h,
         originalHeader: h          // Guardamos o original para a API
     })) as any
 })
@@ -41,7 +41,7 @@ const handleSync = async () => {
     }
 }
 
-async function togglePresenca(row: any, originalHeader: string) {
+async function togglePresenca(row: any, originalHeader: string, del=false) {
     if (originalHeader === 'Nome' || originalHeader === 'Matricula') return
 
     const atual = row[originalHeader]
@@ -52,11 +52,13 @@ async function togglePresenca(row: any, originalHeader: string) {
         faltasNum = Number(atual)
         if (isNaN(faltasNum)) faltasNum = 0
     }
-
-    // Ciclo de faltas: 0 -> 1 -> 2 -> 3 -> 4 -> 5 -> 0
-    const novoStatus = faltasNum >= 5 ? 0 : faltasNum + 1
+    let novoStatus = faltasNum;
+    if(del){
+        novoStatus = faltasNum <= 0? 5 : faltasNum -1;
+    }else{
+        novoStatus = faltasNum >= 5 ? 0 : faltasNum + 1
+    }
     
-    // Atualização otimista na UI
     row[originalHeader] = novoStatus
 
     try {
@@ -75,6 +77,7 @@ async function togglePresenca(row: any, originalHeader: string) {
         console.error("Erro ao salvar:", err.data)
     }
 }
+
 </script>
 
 <template>
@@ -119,6 +122,7 @@ async function togglePresenca(row: any, originalHeader: string) {
                             v-if="col.originalHeader !== 'Nome' && col.originalHeader !== 'Matricula'"
                             class="cursor-pointer hover:bg-gray-100 dark:hover:bg-gray-800 p-2 rounded text-center transition-colors min-w-[50px]"
                             @click="togglePresenca(row.original, col.originalHeader)"
+                            @contextmenu.prevent="togglePresenca(row.original, col.originalHeader, true)"
                         >
                             <span :class="{
                                 'text-green-600 font-bold': row.original[col.originalHeader] === 0,

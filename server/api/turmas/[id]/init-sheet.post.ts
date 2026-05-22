@@ -26,23 +26,22 @@ export default defineEventHandler(async (event) => {
   }
 
   const students = turma.alunos.map(a => ({
-    Matricula: a.aluno.matricula,
-    Nome: a.aluno.nome
+    matricula: a.aluno.matricula,
+    nome: a.aluno.nome
   }));
 
-  // Opcional: Gerar as próximas 10 datas (segunda a sexta) para o cabeçalho
   const dates: string[] = [];
   let cursor = new Date();
   while (dates.length < 15) {
     if (cursor.getDay() !== 0 && cursor.getDay() !== 6) {
       const dia = cursor.getDate().toString().padStart(2, '0');
       const mes = (cursor.getMonth() + 1).toString().padStart(2, '0');
-      dates.push(`${dia}/${mes}`);1
+      dates.push(`${dia}/${mes}`);
     }
     cursor.setDate(cursor.getDate() + 1);
   }
 
-  const proxyUrl = 'https://script.google.com/macros/s/AKfycby8Bpj6lwApPa0O0Rd5VksULmHJv3K3Dt1babFy4hdC7cMXLL_6c2vjZTS-m65FCA3l/exec';
+  const proxyUrl = process.env["LINK_PROXY"] as any;
   const config = useRuntimeConfig();
 
   try {
