@@ -9,7 +9,6 @@ export default defineEventHandler(async (event) => {
         prisma.disciplina.count()
     ]);
 
-    // Busca turmas com mais alunos (Top 5)
     const turmasPopulares = await prisma.turma.findMany({
         take: 5,
         include: {

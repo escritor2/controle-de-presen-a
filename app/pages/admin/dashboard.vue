@@ -66,7 +66,7 @@ const shortcuts = [
                     <div v-for="turma in stats?.turmasPopulares" :key="turma.id" class="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors border border-transparent hover:border-gray-200 dark:hover:border-gray-700">
                         <div class="flex items-center gap-4">
                             <div class="w-10 h-10 rounded-full bg-primary-100 dark:bg-primary-900 flex items-center justify-center text-primary-600 font-bold">
-                                {{ turma.codigo.substring(0, 2) }}
+                                {{ turma.codigo.substring(0, 4) }}
                             </div>
                             <div>
                                 <p class="font-bold text-gray-900 dark:text-white text-sm">{{ turma.nome }}</p>
