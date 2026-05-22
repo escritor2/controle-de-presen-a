@@ -26,8 +26,8 @@ export default defineEventHandler(async (event) => {
   }
 
   const students = turma.alunos.map(a => ({
-    matricula: a.aluno.matricula,
-    nome: a.aluno.nome
+    Matricula: a.aluno.matricula,
+    Nome: a.aluno.nome
   }));
 
   // Opcional: Gerar as próximas 10 datas (segunda a sexta) para o cabeçalho
@@ -37,7 +37,7 @@ export default defineEventHandler(async (event) => {
     if (cursor.getDay() !== 0 && cursor.getDay() !== 6) {
       const dia = cursor.getDate().toString().padStart(2, '0');
       const mes = (cursor.getMonth() + 1).toString().padStart(2, '0');
-      dates.push(`${dia}/${mes}`);
+      dates.push(`${dia}/${mes}`);1
     }
     cursor.setDate(cursor.getDate() + 1);
   }

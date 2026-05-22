@@ -17,7 +17,6 @@ export default defineEventHandler(async (event) => {
     }
 
     try {
-
         await prisma.user.delete({
             where: { id }
         })

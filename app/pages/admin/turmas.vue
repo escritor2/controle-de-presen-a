@@ -36,6 +36,19 @@ function abrirEdicao(row: any) {
     isOpen.value = true
 }
 
+async function excluirTurma(id: string){
+    if(!confirm('Tem certeza que deseja excluir essa turma?')) return;
+    try {
+        await $fetch(`/api/turmas/${id}`, {method: "DELETE"});
+        await refresh()
+        toast.add({title: 'Sucesso', description: 'Turma deletado com sucesso'})
+    }catch(e: any){
+        toast.add({title: 'Erro', description: `Erro ao excluir turma ${e}`})
+    }
+    
+
+}
+
 function abrirAddDisciplina(row: any) {
     turmaSelecionada.value = row
     novaDisciplina.value = { nome: '', professorId: '' }
@@ -249,6 +262,13 @@ const listaCursos = computed(() => {
                             variant="ghost"
                             size="xs"
                             @click="abrirEdicao(row.original)"
+                        />
+                        <UButton 
+                            icon="i-heroicons-trash"
+                            color="neutral"
+                            variant="ghost"
+                            size="xs"
+                            @click="excluirTurma(row.original.id)"
                         />
                     </div>
                 </template>
