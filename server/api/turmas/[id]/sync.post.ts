@@ -125,13 +125,14 @@ export default defineEventHandler(async (event) => {
                 const valorStr = String(rowValues[i] || '').trim()
                 const valorNum = parseInt(valorStr, 10)
                 if (!isNaN(valorNum) && valorNum >= 0 && valorNum <= 5) {
-                    // Tentar extrair data do cabeçalho (dd/mm)
+                    // Tentar extrair data do cabeçalho (dd/mm/yyyy ou dd/mm) com ano e timezone corretos
                     let dataFreq = new Date()
                     const partesData = header.split('/')
                     if (partesData.length >= 2) {
-                        const dia = parseInt(partesData[0] || '1')
-                        const mes = parseInt(partesData[1] || '1') - 1
-                        dataFreq = new Date(dataFreq.getFullYear(), mes, dia, 12, 0, 0)
+                        const dia = parseInt(partesData[0] || '1', 10)
+                        const mes = parseInt(partesData[1] || '1', 10) - 1
+                        const ano = partesData[2] ? parseInt(partesData[2], 10) : dataFreq.getFullYear()
+                        dataFreq = new Date(Date.UTC(ano, mes, dia, 12, 0, 0))
                     }
 
                     const disciplinaId = turma.disciplinas[0]?.id

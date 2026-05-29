@@ -29,20 +29,29 @@ export default defineEventHandler(async (event) => {
 
     if (!turma) throw createError({ statusCode: 404, statusMessage: 'Turma não encontrada' });
 
+    // Admin ou Professor da turma (Correção BOLA)
+    const isProfessorDaTurma = turma.disciplinas.some(d => d.professorId === user.professorId)
+    if (user.role !== 'ADMIN' && !isProfessorDaTurma) {
+        throw createError({ statusCode: 403, statusMessage: 'Não autorizado para esta turma' })
+    }
+
     const disciplinaId = turma.disciplinas[0]?.id;
     if (!disciplinaId) {
         throw createError({ statusCode: 400, statusMessage: 'A turma não tem disciplina atribuída' });
     }
 
-    // Converter data string (dd/mm) para Date object se necessário
+    // Converter data string (dd/mm/yyyy ou dd/mm ou ISO) para Date object (Correção de Timezone e Ano)
     let dataObj = new Date(data);
     if (isNaN(dataObj.getTime())) {
         const partes = data.split('/');
         if (partes.length >= 2) {
-            const dia = parseInt(partes[0] || '1');
-            const mes = parseInt(partes[1] || '1') - 1;
-            dataObj = new Date(new Date().getFullYear(), mes, dia, 12, 0, 0);
+            const dia = parseInt(partes[0] || '1', 10);
+            const mes = parseInt(partes[1] || '1', 10) - 1;
+            const ano = partes[2] ? parseInt(partes[2], 10) : new Date().getFullYear();
+            dataObj = new Date(Date.UTC(ano, mes, dia, 12, 0, 0));
         }
+    } else {
+        dataObj = new Date(Date.UTC(dataObj.getUTCFullYear(), dataObj.getUTCMonth(), dataObj.getUTCDate(), 12, 0, 0));
     }
 
     const registro = await prisma.frequencia.upsert({

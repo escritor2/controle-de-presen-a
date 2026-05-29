@@ -1,102 +1,91 @@
 # Sistema de Controle de Presença
 
-Este é um sistema para gestão de frequência escolar, desenvolvido com tecnologias modernas para oferecer uma experiência fluida tanto para administradores quanto para professores e empresas parceiras.
-
-## Tecnologias Utilizadas
-
-O projeto utiliza o que há de mais moderno no ecossistema JavaScript/TypeScript:
-
-- Framework: [Nuxt 4](https://nuxt.com/) (Vue 3 + Nitro)
-- Interface: [Nuxt UI](https://ui.nuxt.com/) & [Tailwind CSS](https://tailwindcss.com/)
-- Banco de Dados & ORM: [Prisma](https://www.prisma.io/) com SQLite (suporte para PostgreSQL)
-- Validação: [Zod](https://zod.dev/)
-- Autenticação: Customizada com `bcrypt` e Middleware de segurança
-- Linguagem: [TypeScript](https://www.typescriptlang.org/)
-
-## Funcionalidades Principais
-
-- Gestão Multi-Nível (RBAC):
-  - ADMIN: Controle total sobre o sistema (usuários, cursos, turmas).
-  - PROFESSOR: Registro e acompanhamento de presença por disciplina.
-- Estrutura Acadêmica:
-  - Organização por Cursos, Turmas e Disciplinas.
-  - Suporte a subdivisões de turmas (Subturma A, B ou Geral).
-- Controle de Frequência:
-  - Registro de faltas por aula (suporte a até 5 aulas por dia).
-  - Sistema de cores indicativo (verde para presença total, laranja para faltas parciais e vermelho para falta total).
-  - Ciclo de interação simplificado para marcação rápida (0 a 5 faltas).
-  - Observações personalizadas por registro de aluno.
-- Gestão de Alunos:
-  - Vínculo de alunos a múltiplas turmas e empresas.
-
-## Integração Google Sheets (Sincronização Automática)
-
-O sistema possui uma funcionalidade de sincronização reversa. Sempre que o número de faltas é alterado no Dashboard, a planilha original do Google Sheets é atualizada automaticamente em tempo real com o valor correspondente (0-5).
-
-### Como Configurar:
-
-1. Apps Script Proxy:
-    * Abra sua planilha do Google.
-    * Vá em Extensões > Apps Script.
-    * Cole o código do script de Proxy (disponível no Guia de Configuração do Google Sheets).
-    * Clique em Implantar > Nova Implantação.
-    * Selecione App da Web, execute como "Você" e dê acesso a "Qualquer pessoa".
-    * Copie a URL gerada e cole no servidor do sistema.
-
-2. Permissões de Compartilhamento:
-    * Para que o sistema consiga atualizar planilhas de outros professores, o professor deve compartilhar a planilha com o e-mail que criou o Apps Script (permissão de Editor).
-
-3. Segurança:
-    * A comunicação é protegida por um SYNC_TOKEN definido no arquivo .env.
-    * Somente requisições com o token correto são processadas pelo Google.
-
-4. Inicialização Rápida:
-    * No painel administrativo, use o botão "Exportar Alunos para Google" para criar automaticamente o cabeçalho e a lista de alunos em uma planilha em branco.
+Este é um sistema robusto para gestão de frequência escolar, projetado para oferecer uma experiência fluida para administradores, professores e empresas parceiras. A plataforma permite o acompanhamento em tempo real das presenças de alunos por disciplinas e turmas, com sincronização automática e bidirecional com o Google Sheets.
 
 ---
 
-## Instalação e Execução
+##  Tecnologias Utilizadas
+
+O ecossistema técnico do projeto foi desenvolvido com tecnologias modernas de alto desempenho:
+
+* **Framework Frontend e Backend:** [Nuxt 4](https://nuxt.com/) (Vue 3 + Nitro Engine)
+* **Design & UI:** [Nuxt UI v3/v4](https://ui.nuxt.com/) & [Tailwind CSS](https://tailwindcss.com/)
+* **Banco de Dados & ORM:** [Prisma](https://www.prisma.io/) com SQLite (ambiente local) e suporte a PostgreSQL (produção)
+* **Validação de Esquemas:** [Zod](https://zod.dev/)
+* **Criptografia & Segurança:**
+  * Hashes de senha utilizando `bcrypt`.
+  * Sessões criptografadas através de cookies com assinaturas baseadas em HMAC-SHA256 (módulo `crypto` nativo do Node.js).
+  * Proteção rigorosa contra adulteração de identidade (Session Hijacking / IDOR).
+  * Autorizações granulares a nível de objeto (BOLA) para lançamentos de frequência.
+
+---
+
+##  Funcionalidades Principais
+
+* **Controle de Acesso Baseado em Perfis (RBAC):**
+  * **ADMIN:** Acesso total à administração de usuários, cursos, turmas, atribuições de professores e gerenciamento de alunos.
+  * **PROFESSOR:** Lançamento de presença simplificado, controle de faltas e visualização de turmas associadas.
+  * **EMPRESA:** Acompanhamento de presença e relatórios dos alunos vinculados à empresa.
+* **Gestão Escolar Avançada:**
+  * Divisão curricular em Cursos, Turmas e Disciplinas.
+  * Suporte a Subturmas (Geral, Subturma A, Subturma B).
+* **Lançamento de Frequência Inteligente:**
+  * Grid de presença dinâmico com cores indicativas (Verde para presença total, Laranja para faltas parciais e Vermelho para faltas totais).
+  * Sistema interativo de cliques rápidos (incrementos automáticos de 0 a 5 faltas).
+  * Inclusão de observações personalizadas por data e por aluno.
+* **Sincronização com o Google Sheets:**
+  * Sincronização em tempo real das faltas marcadas no sistema local com as colunas de data do Google Sheets.
+  * Botão de exportação automatizada para preparar a estrutura da planilha e sincronizar todos os alunos da turma de uma única vez.
+
+---
+
+##  Instalação e Inicialização Local
+
+Siga os passos abaixo para rodar o projeto em seu computador.
 
 ### Pré-requisitos
-- Node.js (v20 ou superior)
-- npm ou pnpm
+* **Node.js:** Versão 20 ou superior.
+* **Gerenciador de pacotes:** `npm` (incluso no Node.js).
 
-### Passos para Instalação
+### Passos para Configuração
 
-1. Clonar o repositório:
-   ```bash
-   git clone <url-do-repositorio>
-   cd controle-de-presen-a
-   ```
+#### 1. Instalar as Dependências
+Abra o terminal na pasta do projeto e execute:
+```bash
+npm install
+```
 
-2. Instalar dependências:
-   ```bash
-   npm install
-   ```
+#### 2. Configurar o Arquivo de Ambiente
+Crie um arquivo chamado `.env` na raiz do projeto (utilize o `.env.example` como modelo):
+```env
+DATABASE_URL="file:./prisma/database.db"
+SYNC_TOKEN="token123"
+LINK_PROXY="https://script.google.com/macros/s/SUA_URL_DO_WEB_APP_AQUI/exec"
+```
+* *DATABASE_URL:* Localização do banco de dados SQLite local.
+* *SYNC_TOKEN:* Senha compartilhada entre o sistema local e o Google Apps Script (use o mesmo valor em ambos).
+* *LINK_PROXY:* A URL de implantação gerada no Google Apps Script (veja o guia de configuração na pasta `docs/`).
 
-3. Configurar variáveis de ambiente:
-   Crie um arquivo .env na raiz do projeto (veja o .env.example):
-   ```env
-   DATABASE_URL="file:./prisma/database.db"
-   SYNC_TOKEN=<token definido no seu script no sheets>
-   PROXY_URL=<link da sua aplicação no sheets a ser usada como proxy>
-   ```
+#### 3. Inicializar e Popular o Banco de Dados
+Gere os esquemas do Prisma, execute as migrações locais e popule o banco de dados com dados de teste:
+```bash
+npx prisma generate
+npx prisma migrate dev --name init
+npx prisma db seed
+```
 
-4. Preparar o banco de dados:
-   ```bash
-   npx prisma migrate dev --name init
-   npx prisma db seed
-   ```
+#### 4. Iniciar o Servidor de Desenvolvimento
+```bash
+npm run dev
+```
+A aplicação estará disponível em `http://localhost:3000`.
 
-5. Iniciar o servidor de desenvolvimento:
-   ```bash
-   npm run dev
-   ```
-   O sistema estará disponível em http://localhost:3000.
+---
 
-## Estrutura do Projeto
+##  Boas Práticas e Arquitetura de Segurança Aplicadas
 
-- /app: Interface do usuário (Vue/Nuxt).
-- /server/api: Endpoints da API (H3/Nitro).
-- /server/utils: Utilitários de backend (Auth, Prisma).
-- /prisma: Schema do banco de dados e scripts de seed.
+O projeto passou por uma revisão de código que implementou melhorias fundamentais de engenharia:
+1. **Sessões à Prova de Falsificação:** O cookie de autenticação não utiliza IDs expostos. O token é assinado no servidor usando uma chave secreta e hash HMAC. Qualquer alteração manual no navegador invalida o token e expira o acesso imediatamente.
+2. **Prevenção a Ataques BOLA:** A rota de salvamento de faltas valida síncronamente se o usuário autenticado é o professor responsável por alguma disciplina da turma, impedindo que contas não autorizadas gravem faltas em turmas alheias.
+3. **Consistência de Timezones:** As datas são manipuladas em UTC absoluto e fixadas no meio-dia. Isso previne que a diferença de fusos horários locais de servidores na nuvem desloque as datas de presença dos alunos.
+4. **Compatibilidade com PostgreSQL:** As consultas do Prisma utilizam `mode: 'insensitive'` nas buscas por texto, garantindo funcionamento idêntico e insensível a maiúsculas/minúsculas tanto em SQLite quanto em PostgreSQL.

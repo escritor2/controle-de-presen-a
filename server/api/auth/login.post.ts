@@ -13,7 +13,9 @@ export default defineEventHandler(async (event) => {
         })
     }
 
-    setCookie(event, 'auth_token', user.id, {
+    const token = signToken(user.id)
+
+    setCookie(event, 'auth_token', token, {
         httpOnly: false,
         secure: process.env.NODE_ENV === 'production',
         sameSite: 'lax',

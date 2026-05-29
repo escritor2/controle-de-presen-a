@@ -6,8 +6,8 @@ export default defineEventHandler(async (event) => {
   return await prisma.aluno.findMany({
     where: search ? {
       OR: [
-        { nome: { contains: search } },
-        { matricula: { contains: search } }
+        { nome: { contains: search, mode: 'insensitive' } },
+        { matricula: { contains: search, mode: 'insensitive' } }
       ]
     } : {},
     orderBy: { nome: 'asc' },
