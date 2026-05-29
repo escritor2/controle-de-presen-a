@@ -54,9 +54,9 @@ async function togglePresenca(row: any, originalHeader: string, del=false) {
     }
     let novoStatus = faltasNum;
     if(del){
-        novoStatus = faltasNum <= 0? 5 : faltasNum -1;
+        novoStatus = faltasNum <= 0? 4 : faltasNum -1;
     }else{
-        novoStatus = faltasNum >= 5 ? 0 : faltasNum + 1
+        novoStatus = faltasNum >= 4 ? 0 : faltasNum + 1
     }
     
     row[originalHeader] = novoStatus

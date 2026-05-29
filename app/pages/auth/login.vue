@@ -38,7 +38,7 @@ async function login() {
                 <p class="text-red-200 text-sm mt-1">Acesse sua conta para continuar</p>
             </div>
 
-            <div class="px-8 py-8">
+            <div class="px-8 py-8" @keydown.enter="login">
                 <UFormField label="E-mail" name="email" class="mb-5">
                     <UInput
                         v-model="estado.email"
@@ -67,6 +67,7 @@ async function login() {
                 </p>
 
                 <UButton
+                id="submitBtn"
                     color="error"
                     variant="solid"
                     size="lg"
@@ -74,7 +75,8 @@ async function login() {
                     :loading="carregando"
                     icon="i-heroicons-arrow-right-end-on-rectangle"
                     @click="login"
-                >
+                    
+                    >
                     Entrar no sistema
                 </UButton>
 
